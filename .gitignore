@@ -1,0 +1,19 @@
+.idea
+# Build directories
+build/
+build-*/
+docs/genrst/
+
+# Test failure outputs and intermediate artefacts
+tests/results/*
+tests/ports/unix/ffi_lib.so
+
+# Python cache files
+__pycache__/
+
+# Customized Makefile/project overrides
+GNUmakefile
+user.props
+
+# MacOS desktop metadata files
+.DS_Store
