@@ -80,14 +80,26 @@ wifi_manager = WifiManager(wifi_access)
 
 mode = 'normal'
 lastAction = None
+lastActivity = time.time()  # Track last user activity for screensaver
+screensaverFrame = 0
+SCREENSAVER_TIMEOUT = 300  # 5 minutes in seconds
+
 def rotary_turned(value):
-    global mode, lastAction
+    global mode, lastAction, lastActivity
+    lastActivity = time.time()  # Reset screensaver timer
+    if mode == 'screensaver':
+        mode = 'normal'
+        return
     mode = 'setting time'
     lastAction = time.time()
     time_from_counter(value)
 
 def button_clicked():
-    global counter, mode, selectedTimeString, display
+    global counter, mode, selectedTimeString, display, lastActivity
+    lastActivity = time.time()  # Reset screensaver timer
+    if mode == 'screensaver':
+        mode = 'normal'
+        return
     if mode != 'setting time': return
     counter = counter+1
     display.message('setting time until ' + selectedTimeString)
@@ -152,14 +164,20 @@ while True:
         mode = 'normal'
         rotary.reset()
 
+    # Check for screensaver activation (5 minutes of inactivity)
+    if mode == 'normal' and time.time() - lastActivity > SCREENSAVER_TIMEOUT:
+        mode = 'screensaver'
+        screensaverFrame = 0  # Reset animation
+
     wifi_manager.check_and_reconnect()
 
     mqtt_service.check_msg()
     status = mqtt_service.get_state()
 
-
-
-    if mode == 'normal':
+    if mode == 'screensaver':
+        display.screensaver(screensaverFrame, status)
+        screensaverFrame += 1
+    elif mode == 'normal':
         display.status(getTimeString(), status)
     elif mode == 'requestSent':
         display.message('setting time until ' + selectedTimeString)
