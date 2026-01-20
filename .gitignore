@@ -2,6 +2,9 @@
 secrets.py
 src/secrets.py
 
+# Claude Code
+.claude/
+
 .idea
 # Build directories
 build/
