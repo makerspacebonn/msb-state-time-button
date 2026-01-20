@@ -18,6 +18,46 @@ import ntptime
 from utime import localtime
 
 from state_manager import StateManager
+
+
+def get_cet_offset():
+    """
+    Returns the correct offset for Central European Time in seconds.
+    CET (winter): UTC+1 = 3600 seconds
+    CEST (summer): UTC+2 = 7200 seconds
+
+    DST rules for Central Europe:
+    - Starts: Last Sunday of March at 2:00 UTC
+    - Ends: Last Sunday of October at 3:00 UTC (2:00 UTC standard)
+    """
+    now = time.gmtime()
+    year, month, day, hour = now[0], now[1], now[2], now[3]
+
+    # Calculate last Sunday of March
+    # March has 31 days, find what day of week March 31 is
+    march_31 = time.mktime((year, 3, 31, 0, 0, 0, 0, 0))
+    march_31_weekday = time.localtime(march_31)[6]  # 0=Monday, 6=Sunday
+    dst_start_day = 31 - ((march_31_weekday + 1) % 7)
+
+    # Calculate last Sunday of October
+    # October has 31 days
+    oct_31 = time.mktime((year, 10, 31, 0, 0, 0, 0, 0))
+    oct_31_weekday = time.localtime(oct_31)[6]
+    dst_end_day = 31 - ((oct_31_weekday + 1) % 7)
+
+    # DST start: last Sunday of March at 2:00 UTC
+    dst_start = time.mktime((year, 3, dst_start_day, 2, 0, 0, 0, 0))
+    # DST end: last Sunday of October at 1:00 UTC (3:00 local becomes 2:00)
+    dst_end = time.mktime((year, 10, dst_end_day, 1, 0, 0, 0, 0))
+
+    current_time = time.time()
+
+    if dst_start <= current_time < dst_end:
+        return 2 * 3600  # CEST: UTC+2
+    else:
+        return 1 * 3600  # CET: UTC+1
+
+
 from wifi_manager import WifiManager
 
 
@@ -78,7 +118,7 @@ selectedTimeString = ""
 
 def time_from_counter(counter):
     global selectedTimeString
-    now = time.localtime(time.time() + 2 * 3600 + (counter + 2) * 60*15)
+    now = time.localtime(time.time() + get_cet_offset() + (counter + 2) * 60*15)
     x = (now[0],now[1],now[2],now[3],math.floor(now[4]/15)*15,now[5],now[6],now[7])
     now = time.localtime(time.mktime(x))
     print(now)
@@ -95,7 +135,7 @@ d = "{}/{}/{} {}:{}"
 print(d.format(Dday, Dmonth, Dyear, Dhour, Dmin, ))
 
 def getTimeString():
-    now = time.localtime(time.time() + 2 * 3600)
+    now = time.localtime(time.time() + get_cet_offset())
     timeString = "{:02d}:{:02d}".format(now[3], now[4])
     return timeString
 
