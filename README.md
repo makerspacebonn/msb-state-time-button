@@ -8,8 +8,10 @@ An ESP32-based device for displaying and setting the Makerspace Bonn open/closed
 - **Time Setting**: Use rotary encoder to select closing time in 15-minute increments
 - **MQTT Integration**: Receives real-time status updates via MQTT
 - **NTP Time Sync**: Automatic time synchronization with DST support (CET/CEST)
-- **Screensaver**: Bouncing logo animation activates after 5 minutes to prevent OLED burn-in
+- **Screensaver**: Bouncing logo animation with configurable timeout to prevent OLED burn-in
 - **Auto-Reconnect**: Robust WiFi and MQTT reconnection handling
+- **Configurable Brightness**: Separate brightness levels for init, normal, and screensaver modes
+- **Logging System**: Centralized logging with configurable levels (DEBUG/INFO/WARN/ERROR)
 
 ## Hardware
 
@@ -51,6 +53,23 @@ An ESP32-based device for displaying and setting the Makerspace Bonn open/closed
 
 4. Reset the device
 
+## Configuration
+
+Settings are defined at the top of `main.py`:
+
+```python
+# Logging
+LOG_LEVEL = 1  # 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR
+
+# Screensaver
+SCREENSAVER_TIMEOUT = 300  # Seconds of inactivity (300 = 5 min)
+
+# Display brightness (0-255)
+BRIGHTNESS_INIT = 50        # During startup
+BRIGHTNESS_NORMAL = 200     # Normal operation
+BRIGHTNESS_SCREENSAVER = 5  # Screensaver mode
+```
+
 ## Usage
 
 ### Normal Mode
@@ -63,15 +82,17 @@ An ESP32-based device for displaying and setting the Makerspace Bonn open/closed
 3. Device sends new closing time to the API
 
 ### Screensaver
-- Activates after 5 minutes of inactivity
-- Shows bouncing MSB logo with status icon
+- Activates after configurable timeout (default 5 minutes)
+- Shows bouncing MSB logo with lock status icon
+- Reduced brightness to save power and reduce burn-in
 - Any input (rotation or button press) wakes the display
 
 ## Project Structure
 
 ```
 src/
-├── main.py              # Main application loop
+├── main.py              # Main application loop and configuration
+├── logger.py            # Centralized logging module
 ├── MSBDisplay.py        # Display rendering (status, screensaver)
 ├── mqtt_service.py      # MQTT client with auto-reconnect
 ├── wifi_manager.py      # WiFi connection management
