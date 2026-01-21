@@ -19,8 +19,13 @@ from utime import localtime
 
 from state_manager import StateManager
 
-# Logging configuration
-LOG_LEVEL = 1  # 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR
+# =============================================================================
+# CONFIGURATION
+# =============================================================================
+LOG_LEVEL = 0  # 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR
+SCREENSAVER_TIMEOUT = 10  # Seconds of inactivity before screensaver (300 = 5 min)
+
+# Logging levels
 LOG_LEVELS = {0: "DEBUG", 1: "INFO", 2: "WARN", 3: "ERROR"}
 
 def log(level, component, message):
@@ -122,7 +127,6 @@ mode = 'normal'
 lastAction = None
 lastActivity = time.time()  # Track last user activity for screensaver
 screensaverFrame = 0
-SCREENSAVER_TIMEOUT = 300  # 5 minutes in seconds
 
 def rotary_turned(value):
     global mode, lastAction, lastActivity

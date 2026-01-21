@@ -54,17 +54,20 @@ class MSBDisplay(Enhanced_Display):
         self.setContrast(50)  # Dim the display
         self.fill(0)
 
-        # Content block dimensions (logo + icon + text below)
-        block_width = 50
-        block_height = 60  # Logo height + icon + text space
+        # Content block dimensions (small logo 14x16 + icon 16x16 + text)
+        block_width = 50   # Logo/icon width + text space
+        block_height = 36  # Logo (16) + gap (4) + icon (16)
 
         # Calculate bounce area
         max_x = self.width - block_width
         max_y = self.height - block_height
 
-        # Bouncing animation using frame counter
-        x = (frame * 2) % (max_x * 2) if max_x > 0 else 0
-        y = (frame * 3) % (max_y * 2) if max_y > 0 else 0
+        # Slow down animation: divide frame by 4 for smoother movement
+        slow_frame = frame // 4
+
+        # Bouncing animation using frame counter (reduced speed)
+        x = slow_frame % (max_x * 2) if max_x > 0 else 0
+        y = (slow_frame * 2 // 3) % (max_y * 2) if max_y > 0 else 0
 
         # Bounce back when hitting edges
         if x >= max_x and max_x > 0:
@@ -76,17 +79,17 @@ class MSBDisplay(Enhanced_Display):
         x = int(max(0, min(max_x, x)))
         y = int(max(0, min(max_y, y)))
 
-        # Draw logo
-        self.load_bpm('msb1.pbm', x, y)
+        # Draw small logo (14x16)
+        self.load_bpm('msb-small.pbm', x, y)
 
         # Draw status with padlock icon (moves with logo)
         if msb_status:
             icon = 'lock-open.pbm' if msb_status.get('open') else 'lock-closed.pbm'
-            self.load_bpm(icon, x, y + 42)
+            self.load_bpm(icon, x, y + 20)
 
             # Show closing time next to icon if set
             if msb_status.get('openUntil'):
                 self.select_font('tiny')
-                self.text(msb_status['openUntil'], x + 18, y + 46, horiz_align=0)
+                self.text(msb_status['openUntil'], x + 18, y + 24, horiz_align=0)
 
         self.show()
