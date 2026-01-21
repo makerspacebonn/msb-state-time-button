@@ -54,9 +54,12 @@ class MSBDisplay(Enhanced_Display):
         self.setContrast(50)  # Dim the display
         self.fill(0)
 
-        # Content block dimensions (small logo 14x16 + icon 16x16 + text)
-        block_width = 50   # Logo/icon width + text space
-        block_height = 36  # Logo (16) + gap (4) + icon (16)
+        # Content block dimensions
+        # With time: icon (16) + text at x+18 (~30px) = ~50px total
+        # Without time: just logo (14) + icon (16)
+        has_time = msb_status and msb_status.get('openUntil')
+        block_width = 50 if has_time else 16
+        block_height = 36
 
         # Calculate bounce area
         max_x = self.width - block_width
