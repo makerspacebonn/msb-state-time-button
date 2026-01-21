@@ -1,5 +1,6 @@
 import time
 import network
+import logger
 
 
 class WifiManager:
@@ -25,16 +26,16 @@ class WifiManager:
     def _scan_for_known_network(self):
         """Scan and return (ssid, password) for first known network, or (None, None)."""
         self.inform("Scanning wifi network...")
-        print("Scanning wifi network...")
+        logger.info("WIFI", "Scanning for networks...")
         try:
             wlans = self.sta_if.scan()
         except OSError as e:
-            print(f"Scan failed: {e}")
+            logger.error("WIFI", f"Scan failed: {e}")
             return None, None
 
         for wlan in wlans:
             ssid = wlan[0].decode()
-            print("trying SSID: " + ssid)
+            logger.debug("WIFI", f"Found SSID: {ssid}")
             if ssid in self.wifi_access.keys():
                 return ssid, self.wifi_access[ssid]
 
@@ -43,7 +44,7 @@ class WifiManager:
     def _attempt_connection(self, ssid, password):
         """Attempt connection with timeout. Returns True if successful."""
         try:
-            print('Connecting to Wifi: ', end="")
+            logger.debug("WIFI", f"Connecting to {ssid}...")
             time.sleep_us(100)
             self.sta_if.config(dhcp_hostname=self.hostname)
             self.sta_if.connect(ssid, password)
@@ -51,16 +52,15 @@ class WifiManager:
             start_time = time.time()
             while not self.sta_if.isconnected():
                 if time.time() - start_time > self.CONNECTION_TIMEOUT:
-                    print(" timeout!")
+                    logger.warn("WIFI", f"Connection timeout after {self.CONNECTION_TIMEOUT}s")
                     self.sta_if.disconnect()
                     return False
-                print('.', end="")
                 time.sleep(1)
 
-            print("*")
+            logger.info("WIFI", f"Connected to {ssid}")
             return True
         except OSError as e:
-            print(f" connection error: {e}")
+            logger.error("WIFI", f"Connection error: {e}")
             return False
 
     def connect_wifi(self):
@@ -74,14 +74,13 @@ class WifiManager:
 
         if ssid is None:
             self.inform("!!!!! No known networks found !!!!")
-            print("!!!!! No known networks found !!!!")
+            logger.error("WIFI", "No known networks found")
             return False
 
         self.ssid = ssid
         self.password = password
         self.inform('connecting to ' + self.ssid)
-        print("SSID to connect to: " + self.ssid)
-        print("Wifi Key to use: " + 'NotGonnaTellYou')
+        logger.info("WIFI", f"Selected network: {self.ssid}")
 
         if not self.sta_if.isconnected():
             if not self._attempt_connection(self.ssid, self.password):
@@ -89,8 +88,8 @@ class WifiManager:
                 return False
 
         self.inform('connected to ' + self.ssid)
-        print('Network config:', self.sta_if.ifconfig())
-        print('hostname:', self.sta_if.config('dhcp_hostname'), '\n')
+        logger.info("WIFI", f"Network config: {self.sta_if.ifconfig()}")
+        logger.debug("WIFI", f"Hostname: {self.sta_if.config('dhcp_hostname')}")
         return True
 
     def check_wifi(self):
@@ -104,13 +103,13 @@ class WifiManager:
     def reconnect(self):
         """Attempt reconnection with retries."""
         for attempt in range(1, self.MAX_RETRIES + 1):
-            print(f"Reconnection attempt {attempt}/{self.MAX_RETRIES}")
+            logger.info("WIFI", f"Reconnection attempt {attempt}/{self.MAX_RETRIES}")
             self.inform(f"Reconnecting ({attempt}/{self.MAX_RETRIES})...")
             if self.connect_wifi():
                 return True
             time.sleep(2)  # Brief pause between retries
 
-        print("All reconnection attempts failed")
+        logger.error("WIFI", "All reconnection attempts failed")
         self.inform("Reconnection failed")
         return False
 

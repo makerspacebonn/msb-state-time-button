@@ -1,5 +1,5 @@
-
 import urequests as requests
+import logger
 
 class StateManager:
     base_url = "https://status.makerspacebonn.de/api"
@@ -14,10 +14,10 @@ class StateManager:
             "msb-key": self.api_key,
         }
         url = self.time_url + time
-        print(url)
+        logger.debug("API", f"Sending request: {url}")
         r = requests.get(url, headers=headers)
-        print(r.status_code)
-        print(r.text)
+        logger.info("API", f"Response: {r.status_code}")
+        logger.debug("API", f"Response body: {r.text}")
         r.close()
 
     def urlencode(self, value):

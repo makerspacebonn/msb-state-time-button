@@ -5,10 +5,14 @@ from enhanced_display import Enhanced_Display
 
 class MSBDisplay(Enhanced_Display):
 
-    def __init__(self, address=0x3C,bus=None, freq=None, sda=None, scl=None, asw=None, i2c=None, display=None):
+    def __init__(self, address=0x3C,bus=None, freq=None, sda=None, scl=None, asw=None, i2c=None, display=None,
+                 brightness_init=50, brightness_normal=255, brightness_screensaver=10):
         Enhanced_Display.__init__(self, address,bus, freq, sda, scl, asw, i2c, display)
         self.load_fonts(['tiny', 'largeNum', 'tiny','text-18'])
-        self.setContrast(255)
+        self.brightness_init = brightness_init
+        self.brightness_normal = brightness_normal
+        self.brightness_screensaver = brightness_screensaver
+        self.setContrast(self.brightness_init)
 
     def logo(self):
         self.load_bpm('msb.pbm')
@@ -25,7 +29,7 @@ class MSBDisplay(Enhanced_Display):
 
     def status(self, time, msb_status):
         self.fill(0)
-        self.setContrast(255)
+        self.setContrast(self.brightness_normal)
         self.select_font('text-18')
         self.text(time, 0, 0, horiz_align=2)
         if msb_status:
@@ -38,7 +42,7 @@ class MSBDisplay(Enhanced_Display):
         self.show()
 
     def selectTime(self, time):
-        self.setContrast(255)
+        self.setContrast(self.brightness_normal)
         self.fill(0)
         self.select_font('tiny')
         self.text('offen bis:', 0, 0, horiz_align=1)
@@ -51,7 +55,7 @@ class MSBDisplay(Enhanced_Display):
         Display bouncing logo with status to prevent OLED burn-in.
         Frame counter determines position.
         """
-        self.setContrast(50)  # Dim the display
+        self.setContrast(self.brightness_screensaver)
         self.fill(0)
 
         # Content block dimensions

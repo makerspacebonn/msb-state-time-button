@@ -2,6 +2,7 @@ import json
 import time
 
 from umqtt.simple import MQTTClient
+import logger
 
 class MQTTService:
 
@@ -33,14 +34,14 @@ class MQTTService:
         self.client.set_callback(self.sub_cb)
 
     def sub_cb(self, topic, msg):
-        print("Received message: " + msg.decode())
+        logger.debug("MQTT", f"Received message: {msg.decode()}")
         try:
             data = json.loads(msg.decode())
             self.state = data
             self.inform(self.state)
-            print(data)
+            logger.debug("MQTT", f"Parsed state: {data}")
         except Exception as e:
-            print("Error parsing MQTT message:", e)
+            logger.error("MQTT", f"Error parsing message: {e}")
 
     def connect_and_subscribe(self):
         try:
@@ -56,10 +57,10 @@ class MQTTService:
             self.consecutive_failures = 0
             self.current_reconnect_delay = self.reconnect_delay
             self._set_connected(True)
-            print("MQTT connected successfully")
+            logger.info("MQTT", "Connected successfully")
             return True
         except Exception as e:
-            print("MQTT connection failed:", e)
+            logger.error("MQTT", f"Connection failed: {e}")
             self._set_connected(False)
             return False
 
@@ -76,7 +77,7 @@ class MQTTService:
         self.last_reconnect_attempt = time.time()
         self.consecutive_failures += 1
 
-        print(f"MQTT reconnecting (attempt {self.consecutive_failures}, delay was {self.current_reconnect_delay}s)...")
+        logger.info("MQTT", f"Reconnecting (attempt {self.consecutive_failures}, delay was {self.current_reconnect_delay}s)")
 
         success = self.connect_and_subscribe()
 
@@ -96,7 +97,7 @@ class MQTTService:
         try:
             self.client.check_msg()
         except Exception as e:
-            print("Error in check_msg:", e)
+            logger.error("MQTT", f"Error in check_msg: {e}")
             self._set_connected(False)
             self._handle_reconnect()
 
@@ -107,7 +108,7 @@ class MQTTService:
             self.client.ping()
             return True
         except Exception as e:
-            print("MQTT ping failed:", e)
+            logger.warn("MQTT", f"Ping failed: {e}")
             self._set_connected(False)
             return False
 
@@ -137,7 +138,7 @@ class MQTTService:
             try:
                 listener(connected)
             except Exception as e:
-                print("Error in connection listener:", e)
+                logger.error("MQTT", f"Error in connection listener: {e}")
 
 
 
